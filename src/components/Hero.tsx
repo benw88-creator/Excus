@@ -6,53 +6,21 @@ import { useEnvironment } from '../hooks/useEnvironment'
 const WORD = 'EXCUS'
 
 /**
- * Section 1. The letters of EXCUS assemble from scattered fragments, then the
- * whole hero dissolves on scroll so section 2 emerges through it rather than
- * cutting.
+ * Section 1. The word "EXCUS" is no longer DOM type sitting on the particle
+ * backdrop — it's spelled out by a subset of the nebula's own particles (see
+ * ParticleField), which gather into the word on load and disperse back into
+ * the cloud on scroll. The heading below exists only for the reduced-motion
+ * path (no WebGL canvas is mounted there at all — see Hero3D) and for
+ * assistive tech/SEO the rest of the time, so the word is never actually
+ * missing from the page, just invisible where the particles are drawing it
+ * instead.
  */
 export default function Hero() {
   const root = useRef<HTMLElement>(null)
-  const letters = useRef<(HTMLSpanElement | null)[]>([])
   const { reducedMotion } = useEnvironment()
 
   useGSAP(
     () => {
-      if (reducedMotion) return
-      const chars = letters.current.filter(Boolean) as HTMLSpanElement[]
-
-      // Assembly: each letter arrives from its own random offset and rotation,
-      // so it reads as fragments finding their place rather than a stagger.
-      //
-      // fromTo, not from: gsap.from takes the element's CURRENT value as its
-      // destination, and React StrictMode runs this effect twice. The first
-      // pass writes opacity:0 inline, so a second gsap.from would capture 0 as
-      // the end value and animate 0 to 0, completing the timeline still
-      // invisible. Stating both ends explicitly makes the effect
-      // idempotent no matter how many times it runs.
-      const tl = gsap.timeline({ delay: 0.25 })
-      tl.fromTo(
-        chars,
-        {
-          yPercent: () => gsap.utils.random(-140, 140),
-          xPercent: () => gsap.utils.random(-90, 90),
-          rotate: () => gsap.utils.random(-45, 45),
-          scale: () => gsap.utils.random(0.4, 1.8),
-          filter: 'blur(14px)',
-          opacity: 0,
-        },
-        {
-          yPercent: 0,
-          xPercent: 0,
-          rotate: 0,
-          scale: 1,
-          filter: 'blur(0px)',
-          opacity: 1,
-          duration: 1.6,
-          ease: 'expo.out',
-          stagger: { each: 0.07, from: 'random' },
-        },
-      )
-
       // Dissolve on scroll — scrubbed, so the user controls the exit.
       gsap.to('[data-hero-content]', {
         yPercent: -18,
@@ -67,7 +35,7 @@ export default function Hero() {
         },
       })
     },
-    { scope: root, dependencies: [reducedMotion] },
+    { scope: root },
   )
 
   return (
@@ -88,21 +56,13 @@ export default function Hero() {
 
         <div className="flex flex-col items-center">
           <h1
-            aria-label={WORD}
-            className="flex select-none justify-center font-display text-[24vw] font-semibold leading-[0.78] tracking-[-0.045em] md:text-[19vw]"
+            className={
+              reducedMotion
+                ? 'select-none text-center font-display text-[24vw] font-semibold leading-[0.78] tracking-[-0.045em] md:text-[19vw]'
+                : 'sr-only'
+            }
           >
-            {WORD.split('').map((char, i) => (
-              <span
-                key={i}
-                aria-hidden
-                ref={(el) => {
-                  letters.current[i] = el
-                }}
-                className="inline-block will-change-transform"
-              >
-                {char}
-              </span>
-            ))}
+            {WORD}
           </h1>
         </div>
 
