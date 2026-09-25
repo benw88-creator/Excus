@@ -146,6 +146,11 @@ export const fragmentShader = /* glsl */ `
     vec2 uv = gl_PointCoord - 0.5;
     float d2 = dot(uv, uv);
     float alpha = exp(-d2 * 9.0);
+    // Particles currently spelling the word get a wider, softer halo layered
+    // additively on top of their own core — a glow, not a bigger dot — so
+    // legibility comes from brightness rather than a bolder-looking outline.
+    float glow = exp(-d2 * 3.0);
+    alpha += glow * vIsText * 0.5;
     if (alpha < 0.01) discard;
 
     // Colour is patchy, not speckled: smoothsteps over two independent low-
@@ -169,10 +174,10 @@ export const fragmentShader = /* glsl */ `
     float sparkle = step(0.94, vSeed);
     color = mix(color, uColorSpark, sparkle);
 
-    // Particles currently spelling the word lean toward the brighter, whiter
-    // end of the palette — a gentle lift, not a swap, so the letters still
-    // read as the same gas rather than a separate glowing-text layer.
-    color = mix(color, uColorSpark, vIsText * 0.06);
+    // Particles currently spelling the word lean strongly toward the bright,
+    // white-hot end of the palette — legibility here is meant to come from
+    // brightness/glow, not from a bolder or more solid-looking shape.
+    color = mix(color, uColorSpark, vIsText * 0.4);
 
     // Larger particles read as slightly brighter/closer, smaller ones as
     // dimmer background wisps — density variation instead of a uniform field.
@@ -184,9 +189,10 @@ export const fragmentShader = /* glsl */ `
     // the cloud is thick, not from any single point being opaque.
     alpha *= mix(0.08, 0.42, vDepth) * mix(1.0, 0.4, uProgress) * sizeBrightness;
     alpha *= mix(0.7, 1.3, sparkle);
-    // A faint, capped lift for text particles — just enough to read as the
-    // word against the field without turning solid or obvious.
-    alpha *= mix(1.0, 1.06, vIsText);
+    // A strong brightness lift for text particles — the word should read as
+    // visibly glowing gas, brighter than its neighbours, rather than reading
+    // as a bolder or more solid-looking outline.
+    alpha *= mix(1.0, 1.9, vIsText);
 
     gl_FragColor = vec4(color, alpha);
   }
