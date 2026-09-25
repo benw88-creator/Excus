@@ -5,7 +5,7 @@
  */
 
 const FONT_SIZE = 220
-const SAMPLE_GAP = 3
+const SAMPLE_GAP = 2
 const ALPHA_THRESHOLD = 128
 
 export function sampleTextPoints(text: string) {

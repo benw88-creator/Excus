@@ -23,14 +23,23 @@ export const vertexShader = /* glsl */ `
 
   attribute float aScale;
   attribute float aSeed;
+  attribute float aIsText;
 
   varying float vSeed;
   varying float vScale;
   varying float vDepth;
+  varying float vIsText;
   // Low-frequency noise sampled once per particle at its simulated position,
   // so colour reads as soft drifting patches of gas rather than per-particle
   // speckle — the difference between a nebula and a starfield.
   varying float vColorNoise;
+  // A second, independent low-frequency channel (different frequency, time
+  // rate and offset from the one above) so a third hue can drift through the
+  // field on its own patches rather than being locked to the same boundary
+  // as the core/violet blend — that independence is what keeps a three-hue
+  // mix reading as naturally blended gas instead of a repeating two-tone
+  // pattern with a third colour pasted on top.
+  varying float vColorNoise2;
 
   // Cheap 3D simplex-ish noise. Not mathematically pretty, but it costs a
   // fraction of real simplex and the field is organic enough that nobody can
@@ -61,6 +70,7 @@ export const vertexShader = /* glsl */ `
   void main() {
     vSeed = aSeed;
     vScale = aScale;
+    vIsText = aIsText;
     vec3 pos = position;
 
     // Slow ambient drift — the field is never completely still, even where
@@ -77,13 +87,16 @@ export const vertexShader = /* glsl */ `
     // than the flow noise above, so the colour patches drift independently
     // of the positional drift instead of looking locked to it.
     vColorNoise = noise(pos * uNoiseScale + vec3(31.7, -9.2, uTime * 0.015));
+    vColorNoise2 = noise(pos * uNoiseScale * 1.7 + vec3(-58.3, 22.6, uTime * 0.021 + 100.0));
 
-    // Pointer parallax, weighted by depth so near particles move more. Purely
-    // decorative — a uniform shift shared by every particle, so it moves the
-    // word exactly as much as the field around it and never threatens
-    // legibility.
+    // Pointer parallax, weighted by depth so near particles move more. Now
+    // that the word fills most of the viewport width, a full-strength shift
+    // at an extreme cursor position could carry it far enough to clip off
+    // one edge — damped here (not removed) for particles currently forming
+    // it, so the word stays anchored on screen while the surrounding field
+    // still tilts normally.
     float depthWeight = smoothstep(-6.0, 6.0, pos.z);
-    pos.xy += uPointer * (0.6 + depthWeight * 1.4);
+    pos.xy += uPointer * (0.6 + depthWeight * 1.4) * (1.0 - vIsText * 0.7);
 
     // As the page progresses past the word-formation range, the whole cloud
     // collapses toward the axis and recedes, so the closing section inherits
@@ -109,15 +122,18 @@ export const vertexShader = /* glsl */ `
 export const fragmentShader = /* glsl */ `
   precision highp float;
 
-  uniform vec3  uColorCore;   // deep space blue — the bulk of the gas
-  uniform vec3  uColorViolet; // purple/violet patches
-  uniform vec3  uColorSpark;  // bright white-blue points of light
+  uniform vec3  uColorCore;       // deep space blue — the bulk of the gas
+  uniform vec3  uColorViolet;     // purple/violet patches
+  uniform vec3  uColorComplement; // a third, subtle complementary hue
+  uniform vec3  uColorSpark;      // bright white-blue points of light
   uniform float uProgress;
 
   varying float vSeed;
   varying float vScale;
   varying float vDepth;
+  varying float vIsText;
   varying float vColorNoise;
+  varying float vColorNoise2;
 
   void main() {
     // Gaussian falloff rather than a hard-edged circle. A smoothstep circle
@@ -132,15 +148,20 @@ export const fragmentShader = /* glsl */ `
     float alpha = exp(-d2 * 9.0);
     if (alpha < 0.01) discard;
 
-    // Colour is patchy, not speckled: a smoothstep over the same low-
-    // frequency noise that's shared by every particle in a neighbourhood
-    // (see the vertex shader) gives soft-edged drifting clouds of colour, the
-    // way real emission nebulae vary gradually rather than pixel-by-pixel.
-    // noise() outputs roughly -1..1 but is not evenly spread across it, so
-    // remap to 0..1 first and threshold around its natural midpoint.
-    float n = vColorNoise * 0.5 + 0.5;
-    float gasPatch = smoothstep(0.32, 0.62, n);
-    vec3 color = mix(uColorCore, uColorViolet, gasPatch);
+    // Colour is patchy, not speckled: smoothsteps over two independent low-
+    // frequency noise channels (see the vertex shader) give soft-edged
+    // drifting clouds of colour, the way real emission nebulae vary
+    // gradually rather than pixel-by-pixel. noise() outputs roughly -1..1
+    // but is not evenly spread across it, so remap to 0..1 first and
+    // threshold around its natural midpoint.
+    float n1 = vColorNoise * 0.5 + 0.5;
+    float n2 = vColorNoise2 * 0.5 + 0.5;
+    vec3 color = mix(uColorCore, uColorViolet, smoothstep(0.32, 0.62, n1));
+    // The complementary hue rides on its own, independent patches and only
+    // ever partially overlays the core/violet blend — full replacement would
+    // read as a third solid colour block, a partial mix keeps every patch
+    // boundary soft and blended rather than tri-tone banding.
+    color = mix(color, uColorComplement, smoothstep(0.6, 0.88, n2) * 0.55);
 
     // A rare, sharp white-blue sparkle on top of the gas — embedded points of
     // light rather than more gas, which is what keeps the cloud from reading
@@ -148,9 +169,14 @@ export const fragmentShader = /* glsl */ `
     float sparkle = step(0.94, vSeed);
     color = mix(color, uColorSpark, sparkle);
 
+    // Particles currently spelling the word lean toward the brighter, whiter
+    // end of the palette — a gentle lift, not a swap, so the letters still
+    // read as the same gas rather than a separate glowing-text layer.
+    color = mix(color, uColorSpark, vIsText * 0.22);
+
     // Larger particles read as slightly brighter/closer, smaller ones as
     // dimmer background wisps — density variation instead of a uniform field.
-    float sizeBrightness = mix(0.65, 1.25, smoothstep(0.3, 1.8, vScale));
+    float sizeBrightness = mix(0.6, 1.3, smoothstep(0.3, 1.8, vScale));
 
     // Depth fade keeps the far field from turning into grey soup. Base
     // alpha is deliberately low — with points this large and this softly
@@ -158,6 +184,9 @@ export const fragmentShader = /* glsl */ `
     // the cloud is thick, not from any single point being opaque.
     alpha *= mix(0.08, 0.42, vDepth) * mix(1.0, 0.4, uProgress) * sizeBrightness;
     alpha *= mix(0.7, 1.3, sparkle);
+    // A modest, capped lift for text particles — legible against the field
+    // without ever reading as solid or as a separate effect.
+    alpha *= mix(1.0, 1.35, vIsText);
 
     gl_FragColor = vec4(color, alpha);
   }

@@ -27,7 +27,13 @@ const TEXT_Y_OFFSET = 0.9
 /** Cap on how much of the field is ever eligible to spell the word — the
  *  rest stays pure nebula, so the word reads as particles borrowed from the
  *  cloud rather than a separate text layer duplicating it. */
-const TEXT_FRACTION = 0.4
+const TEXT_FRACTION = 0.55
+/** Text particles are drawn from the brighter/larger end of the size
+ *  distribution (rather than the same random range as the nebula), so the
+ *  letters read clearly at a glance without the shader having to render them
+ *  as solid or flat. */
+const TEXT_SCALE_MIN = 0.85
+const TEXT_SCALE_MAX = 1.7
 
 /** World units — how far the cursor's push reaches. */
 const MOUSE_RADIUS = 2.8
@@ -155,6 +161,9 @@ export default function ParticleField({ count }: Props) {
         word[idx + 1] = p.y * textHeight + textYOffset
         word[idx + 2] = TEXT_DEPTH
         isText[particle] = 1
+        // Redraw this particle's size from the brighter/larger band rather
+        // than keeping whatever the general nebula distribution gave it.
+        scale[particle] = TEXT_SCALE_MIN + Math.random() * (TEXT_SCALE_MAX - TEXT_SCALE_MIN)
       } else {
         word[idx] = home[idx]
         word[idx + 1] = home[idx + 1]
@@ -172,6 +181,7 @@ export default function ParticleField({ count }: Props) {
     g.setAttribute('position', positionAttr)
     g.setAttribute('aScale', new THREE.BufferAttribute(sim.scale, 1))
     g.setAttribute('aSeed', new THREE.BufferAttribute(sim.seed, 1))
+    g.setAttribute('aIsText', new THREE.BufferAttribute(sim.isText, 1))
     return g
   }, [sim])
 
@@ -187,6 +197,10 @@ export default function ParticleField({ count }: Props) {
       uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
       uColorCore: { value: new THREE.Color('#171a3d') },
       uColorViolet: { value: new THREE.Color('#5b3fa6') },
+      // A subtle rose-magenta complement to the blue/violet base — a third
+      // hue, not a second gradient, so the field reads as a proper mixed
+      // nebula rather than a two-colour ramp with white stars on top.
+      uColorComplement: { value: new THREE.Color('#8a4a8f') },
       uColorSpark: { value: new THREE.Color('#e6ecff') },
     }),
     [viewport.width],
