@@ -42,7 +42,42 @@ export default function Ventures() {
 
   useGSAP(
     () => {
-      if (!scrub) return
+      if (reducedMotion) return
+
+      if (!scrub) {
+        // Mobile gets no scroll-jacking (see useEnvironment), but that
+        // shouldn't mean the ledger just appears fully-formed the instant it
+        // scrolls into the DOM — a plain one-shot reveal per row, triggered
+        // as each one enters view, is what the desktop's scrubbed version
+        // reduces to without a pinned stage to scrub against.
+        gsap.fromTo(
+          '[data-ventures-intro]',
+          { opacity: 0, y: 24 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.7,
+            ease: 'power3.out',
+            scrollTrigger: { trigger: '[data-ventures-intro]', start: 'top 88%', once: true },
+          },
+        )
+
+        VENTURES.forEach((v) => {
+          gsap.fromTo(
+            `[data-venture="${v.id}"]`,
+            { opacity: 0, y: 28 },
+            {
+              opacity: 1,
+              y: 0,
+              duration: 0.7,
+              ease: 'power3.out',
+              scrollTrigger: { trigger: `[data-venture="${v.id}"]`, start: 'top 90%', once: true },
+            },
+          )
+        })
+
+        return
+      }
 
       const tl = gsap.timeline({
         scrollTrigger: {
@@ -97,13 +132,13 @@ export default function Ventures() {
         },
       })
     },
-    { scope: root, dependencies: [scrub] },
+    { scope: root, dependencies: [scrub, mobile, reducedMotion] },
   )
 
   const body = (
     <div data-drift className="mx-auto w-full max-w-6xl will-change-transform">
       <div className="grid gap-10 md:grid-cols-[1fr_1.5fr] md:items-end">
-        <div>
+        <div data-ventures-intro>
           <h2 className="text-[9vw] font-medium leading-[0.95] tracking-[-0.035em] md:text-[3.8vw]">
             One company.
             <br />

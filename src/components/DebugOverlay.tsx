@@ -51,7 +51,6 @@ export default function DebugOverlay() {
   const scrollRows: [string, unknown][] = [
     ['scrollY', window.scrollY],
     ['docScrollHeight', document.documentElement.scrollHeight],
-    ['innerHeight', window.innerHeight],
     ['maxScrollY', document.documentElement.scrollHeight - window.innerHeight],
     ['htmlClassList', document.documentElement.className || '(none)'],
     ['bodyOverflow', getComputedStyle(document.body).overflow],
