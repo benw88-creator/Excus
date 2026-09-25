@@ -8,6 +8,7 @@ import Manifesto from './components/Manifesto'
 import Ventures from './components/Ventures'
 import ClosingCTA from './components/ClosingCTA'
 import Hero3D from './webgl/Hero3D'
+import DebugOverlay from './components/DebugOverlay'
 import { ScrollTrigger, useGSAP } from './lib/gsap'
 import { scrollProgress } from './lib/progress'
 
@@ -39,6 +40,7 @@ export default function App() {
       <Cursor />
       <Grain />
       <Progress />
+      <DebugOverlay />
 
       {/* Fixed backdrop rather than a canvas inside the hero: the shader's
           uProgress uniform collapses and dims the field as the page advances,

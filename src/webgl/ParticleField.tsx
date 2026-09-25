@@ -5,6 +5,7 @@ import { vertexShader, fragmentShader } from './particles.glsl'
 import { scrollProgress } from '../lib/progress'
 import { pointer as sharedPointer, ensurePointerTracking } from '../hooks/usePointer'
 import { sampleTextPoints } from './textPoints'
+import { particleDebug } from './debugState'
 
 type Props = { count: number }
 
@@ -159,7 +160,7 @@ export default function ParticleField({ count }: Props) {
     // particle index gets which glyph point (rather than assigning in raster
     // order) means no correlation between a particle's seed/size and where
     // in the word it ends up.
-    const { points: glyphPoints, aspect } = sampleTextPoints(WORD)
+    const { points: glyphPoints, aspect, width: sampleWidth, height: sampleHeight } = sampleTextPoints(WORD)
     const textHeight = textWidth / aspect
     const order = Array.from({ length: count }, (_, i) => i)
     for (let i = order.length - 1; i > 0; i--) {
@@ -201,6 +202,31 @@ export default function ParticleField({ count }: Props) {
         word[idx + 1] = home[idx + 1]
         word[idx + 2] = home[idx + 2]
       }
+    }
+
+    if (new URLSearchParams(window.location.search).get('debug') === '1') {
+      let aScaleMin = Infinity
+      let aScaleMax = -Infinity
+      for (let i = 0; i < count; i++) {
+        if (isText[i]) {
+          aScaleMin = Math.min(aScaleMin, scale[i])
+          aScaleMax = Math.max(aScaleMax, scale[i])
+        }
+      }
+      Object.assign(particleDebug, {
+        mobile: viewport.width <= 8,
+        count,
+        viewportWidth: viewport.width,
+        textWidth,
+        textSizeBoost,
+        glyphPointCount: glyphPoints.length,
+        textCount,
+        aScaleMin,
+        aScaleMax,
+        sampleWidth,
+        sampleHeight,
+        sampleAspect: aspect,
+      })
     }
 
     return { home, word, pos, vel, scale, seed, isText }
@@ -270,6 +296,20 @@ export default function ParticleField({ count }: Props) {
     // gap entirely, whatever caused it.
     const canvasEl = state.gl.domElement
     u.uPixelRatio.value = canvasEl.clientWidth > 0 ? canvasEl.width / canvasEl.clientWidth : state.gl.getPixelRatio()
+
+    if (new URLSearchParams(window.location.search).get('debug') === '1') {
+      Object.assign(particleDebug, {
+        uSize: u.uSize.value,
+        pixelRatio: u.uPixelRatio.value,
+        pointSizeMin: pointSizeRange.x,
+        pointSizeMax: pointSizeRange.y,
+        dpr: window.devicePixelRatio,
+        innerWidth: window.innerWidth,
+        innerHeight: window.innerHeight,
+        canvasWidth: canvasEl.width,
+        canvasClientWidth: canvasEl.clientWidth,
+      })
+    }
 
     // Eased toward the real scroll position, not toward a velocity — driving
     // the late-page recede from POSITION rather than velocity means it holds

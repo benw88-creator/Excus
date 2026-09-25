@@ -72,5 +72,5 @@ export function sampleTextPoints(text: string) {
     }
   }
 
-  return { points, aspect: width / height }
+  return { points, aspect: width / height, width, height }
 }
