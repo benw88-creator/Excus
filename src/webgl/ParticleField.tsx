@@ -74,7 +74,18 @@ function smoothstep(edge0: number, edge1: number, x: number) {
 export default function ParticleField({ count }: Props) {
   const points = useRef<THREE.Points>(null)
   const material = useRef<THREE.ShaderMaterial>(null)
-  const { viewport } = useThree()
+  const { viewport, gl } = useThree()
+
+  // The GPU's own reported min/max for gl_PointSize, rather than the
+  // [0.5, 34] guessed in the shader before — some real devices enforce a
+  // narrower or differently-scaled range than desktop Chrome does, silently
+  // clamping small requested sizes up to something much larger and merging
+  // adjacent letters of the word together with no error anywhere to signal it.
+  const pointSizeRange = useMemo(() => {
+    const context = gl.getContext()
+    const range = context.getParameter(context.ALIASED_POINT_SIZE_RANGE) as Float32Array
+    return new THREE.Vector2(range[0], range[1])
+  }, [gl])
 
   // Screen-space parallax pointer, smoothed on the CPU before it reaches the
   // shader — feeding raw pointer coords in makes the whole-field tilt twitch.
@@ -223,6 +234,7 @@ export default function ParticleField({ count }: Props) {
       // every frame below, since gl_PointSize is measured in the renderer's
       // own framebuffer space, not the display's.
       uPixelRatio: { value: 1 },
+      uPointSizeRange: { value: pointSizeRange },
       uColorCore: { value: new THREE.Color('#171a3d') },
       uColorViolet: { value: new THREE.Color('#5b3fa6') },
       // A subtle rose-magenta complement to the blue/violet base — a third
@@ -231,7 +243,7 @@ export default function ParticleField({ count }: Props) {
       uColorComplement: { value: new THREE.Color('#8a4a8f') },
       uColorSpark: { value: new THREE.Color('#e6ecff') },
     }),
-    [viewport.width],
+    [viewport.width, pointSizeRange],
   )
 
   useFrame((state, delta) => {
@@ -245,15 +257,19 @@ export default function ParticleField({ count }: Props) {
     clock.current += dt
     u.uTime.value = clock.current
 
-    // The renderer's own applied pixel ratio (capped below the display's
-    // devicePixelRatio on mobile — see the Canvas `dpr` prop in Scene.tsx),
-    // not window.devicePixelRatio directly. gl_PointSize is specified in
-    // framebuffer pixels, so sizing against the wrong ratio makes points
-    // render larger than intended on any device where the two diverge — a
-    // real iPhone (devicePixelRatio 3) capped to a 1.5x framebuffer, for
-    // instance, was rendering the word's points at roughly double the
-    // intended size, merging adjacent letters into an illegible blob.
-    u.uPixelRatio.value = state.gl.getPixelRatio()
+    // The canvas's ACTUAL backing-buffer-to-CSS-pixel ratio, measured
+    // directly from the DOM element rather than trusted from
+    // gl.getPixelRatio() — gl_PointSize is specified in framebuffer pixels,
+    // and on at least one real iOS Safari device, the renderer's own
+    // reported pixel ratio (what we asked it to use) diverged from the
+    // canvas's real backing-store size (what the browser actually gave us),
+    // so sizing against the reported value alone was still rendering points
+    // roughly 2x too large there — enough to merge every letter of the word
+    // into one illegible smear, despite looking correct in every desktop and
+    // emulated-mobile test. Reading the two actual sizes back sidesteps that
+    // gap entirely, whatever caused it.
+    const canvasEl = state.gl.domElement
+    u.uPixelRatio.value = canvasEl.clientWidth > 0 ? canvasEl.width / canvasEl.clientWidth : state.gl.getPixelRatio()
 
     // Eased toward the real scroll position, not toward a velocity — driving
     // the late-page recede from POSITION rather than velocity means it holds

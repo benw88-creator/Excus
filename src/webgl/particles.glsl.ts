@@ -20,6 +20,11 @@ export const vertexShader = /* glsl */ `
   uniform float uSize;
   uniform float uPixelRatio;
   uniform float uNoiseScale; // frequency of the low-frequency colour-patch noise
+  uniform vec2  uPointSizeRange; // this GPU's actual gl_PointSize min/max —
+                                  // some real devices enforce a narrower or
+                                  // differently-scaled range than desktop
+                                  // Chrome does, silently rendering small
+                                  // requested sizes much larger than asked.
 
   attribute float aScale;
   attribute float aSeed;
@@ -115,7 +120,7 @@ export const vertexShader = /* glsl */ `
     // overlap generously so their soft edges (see the fragment shader) blend
     // into continuous cloud rather than staying legible as separate dots.
     float size = uSize * aScale * uPixelRatio;
-    gl_PointSize = clamp(size * (8.0 / -mvPosition.z), 0.5, 34.0);
+    gl_PointSize = clamp(size * (8.0 / -mvPosition.z), max(0.5, uPointSizeRange.x), min(34.0, uPointSizeRange.y));
   }
 `
 
