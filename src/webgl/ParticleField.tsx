@@ -101,6 +101,14 @@ export default function ParticleField({ count }: Props) {
   const sim = useMemo(() => {
     const textWidth = Math.min(TEXT_WIDTH_MAX, viewport.width * TEXT_WIDTH_VIEWPORT_FRACTION)
     const textYOffset = TEXT_Y_OFFSET * (textWidth / TEXT_WIDTH_MAX)
+    // On a narrow/portrait viewport the word itself is drawn much smaller
+    // (clamped to fit the frustum above), but a particle's rendered point
+    // size doesn't shrink to match on its own — without this, the same
+    // per-particle size that reads fine on desktop becomes a handful of
+    // near-invisible sub-pixel dots on mobile. Scales the text particles'
+    // own size band back up in inverse proportion to how much the word had
+    // to shrink, capped so it can't run away on extremely narrow screens.
+    const textSizeBoost = Math.min(1.5, Math.sqrt(TEXT_WIDTH_MAX / textWidth))
 
     const home = new Float32Array(count * 3) // resting nebula position
     const word = new Float32Array(count * 3) // target when spelling EXCUS
@@ -173,8 +181,10 @@ export default function ParticleField({ count }: Props) {
         word[idx + 2] = TEXT_DEPTH
         isText[particle] = 1
         // Redraw this particle's size from the brighter/larger band rather
-        // than keeping whatever the general nebula distribution gave it.
-        scale[particle] = TEXT_SCALE_MIN + Math.random() * (TEXT_SCALE_MAX - TEXT_SCALE_MIN)
+        // than keeping whatever the general nebula distribution gave it,
+        // boosted for narrow viewports (see textSizeBoost above).
+        scale[particle] =
+          (TEXT_SCALE_MIN + Math.random() * (TEXT_SCALE_MAX - TEXT_SCALE_MIN)) * textSizeBoost
       } else {
         word[idx] = home[idx]
         word[idx + 1] = home[idx + 1]
