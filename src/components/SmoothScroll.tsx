@@ -91,8 +91,10 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
       },
     })
 
-    // Dev-only handle for tuning the feel from the console.
-    if (import.meta.env.DEV) {
+    // Dev-only handle for tuning the feel from the console — also exposed in
+    // production behind ?debug=1, so DebugOverlay can read Lenis's state
+    // back from a device we have no devtools access to.
+    if (import.meta.env.DEV || new URLSearchParams(window.location.search).get('debug') === '1') {
       ;(window as unknown as Record<string, unknown>).lenis = lenis
     }
 
