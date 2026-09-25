@@ -14,15 +14,16 @@ export function sampleTextPoints(text: string) {
   measuring.font = FONT
   const metrics = measuring.measureText(text)
 
-  // Measured from the actual glyph outlines (not a guessed font-size
-  // multiplier), with generous padding on every side — a fixed multiplier
-  // clipped descender-free caps like "EXCUS" against the canvas edge on some
-  // platforms' metrics, which showed up as a hard-cut flat edge on the
-  // rasterised letters.
-  const padding = FONT_SIZE * 0.35
+  // Measured from the actual glyph outlines on every side (not a guessed
+  // font-size multiplier, and not the advance width, which a bold/black
+  // weight can overhang) — with generous padding, since a too-tight estimate
+  // showed up as a hard-cut flat edge on the rasterised letters.
+  const padding = FONT_SIZE * 0.5
   const ascent = metrics.actualBoundingBoxAscent
   const descent = metrics.actualBoundingBoxDescent
-  const width = Math.ceil(metrics.width + padding * 2)
+  const left = metrics.actualBoundingBoxLeft
+  const right = metrics.actualBoundingBoxRight
+  const width = Math.ceil(left + right + padding * 2)
   const height = Math.ceil(ascent + descent + padding * 2)
 
   const canvas = document.createElement('canvas')
@@ -32,8 +33,12 @@ export function sampleTextPoints(text: string) {
   ctx.font = FONT
   ctx.fillStyle = '#fff'
   ctx.textBaseline = 'alphabetic'
-  ctx.textAlign = 'center'
-  ctx.fillText(text, width / 2, padding + ascent)
+  // 'left', matching the default alignment measureText used above — drawn at
+  // (padding + left) so the ink's actual left edge lands exactly at
+  // `padding` from the canvas edge, symmetric with the right/top/bottom
+  // margins regardless of how the glyphs overhang their advance width.
+  ctx.textAlign = 'left'
+  ctx.fillText(text, padding + left, padding + ascent)
 
   const { data } = ctx.getImageData(0, 0, width, height)
   const points: { x: number; y: number }[] = []

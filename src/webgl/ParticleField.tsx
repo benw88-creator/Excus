@@ -27,13 +27,12 @@ const TEXT_Y_OFFSET = 0.9
 /** Cap on how much of the field is ever eligible to spell the word — the
  *  rest stays pure nebula, so the word reads as particles borrowed from the
  *  cloud rather than a separate text layer duplicating it. */
-const TEXT_FRACTION = 0.55
-/** Text particles are drawn from the brighter/larger end of the size
- *  distribution (rather than the same random range as the nebula), so the
- *  letters read clearly at a glance without the shader having to render them
- *  as solid or flat. */
-const TEXT_SCALE_MIN = 0.65
-const TEXT_SCALE_MAX = 1.35
+const TEXT_FRACTION = 0.42
+/** Text particles are drawn from a slightly larger size band than the
+ *  nebula's own random range, just enough to read as a shape at a glance
+ *  without the shader having to render them as solid or flat. */
+const TEXT_SCALE_MIN = 0.5
+const TEXT_SCALE_MAX = 1.05
 
 /** World units — how far the cursor's push reaches. */
 const MOUSE_RADIUS = 2.8
@@ -149,6 +148,18 @@ export default function ParticleField({ count }: Props) {
       const tmp = order[i]
       order[i] = order[j]
       order[j] = tmp
+    }
+
+    // glyphPoints comes out in raster-scan order (top row to bottom row).
+    // Whenever fewer particles are eligible for the word than there are
+    // glyph points, taking a plain prefix of this array would only ever
+    // sample the TOP of the letterforms — shuffling it first means the
+    // (possibly partial) subset we take still covers the whole word evenly.
+    for (let i = glyphPoints.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      const tmp = glyphPoints[i]
+      glyphPoints[i] = glyphPoints[j]
+      glyphPoints[j] = tmp
     }
 
     const textCount = Math.min(glyphPoints.length, Math.floor(count * TEXT_FRACTION))
