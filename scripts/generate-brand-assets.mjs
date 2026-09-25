@@ -27,13 +27,20 @@ async function trimmedMark() {
 
 async function squareIcon(size, outName) {
   const trimmed = await trimmedMark()
-  const inset = Math.round(size * 0.04)
+  const inset = Math.round(size * 0.03)
   const bg = { create: { width: size, height: size, channels: 4, background: VOID } }
   const mark = await sharp(trimmed)
     .resize(size - inset * 2, size - inset * 2, { fit: 'contain', background: VOID })
+    // The source mark's strokes are a mid-grey, not pure white — fine at OG
+    // size, but at favicon sizes (rendered a few dozen pixels tall in a
+    // browser tab) that reads as a nearly-invisible dark smudge. Lifting
+    // brightness/contrast here, favicon-only, keeps the OG image's more
+    // faithful reproduction untouched.
+    .linear(1.6, -20)
     .toBuffer()
   await sharp(bg)
     .composite([{ input: mark, top: inset, left: inset }])
+    .flatten({ background: VOID })
     .png()
     .toFile(path.join(publicDir, outName))
   console.log(`wrote ${outName}`)
