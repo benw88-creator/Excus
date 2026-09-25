@@ -88,6 +88,23 @@ html.lenis-stopped {
   }
 }
 
+/* A slow breathing glow on the "Live" venture badge — the one status that's
+   actually happening right now, so it gets the one bit of ambient motion
+   that isn't tied to scroll. prefers-reduced-motion already zeroes animation
+   durations globally above, so this needs no separate override. */
+@keyframes live-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(245 200 66 / 0.3);
+  }
+  50% {
+    box-shadow: 0 0 12px 1px rgb(245 200 66 / 0.35);
+  }
+}
+.live-pulse {
+  animation: live-pulse 3.2s ease-in-out infinite;
+}
+
 @keyframes grain-drift {
   0%   { transform: translate3d(0, 0, 0); }
   16%  { transform: translate3d(-3%, -2%, 0); }

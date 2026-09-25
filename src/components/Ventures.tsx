@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { gsap, useGSAP } from '../lib/gsap'
 import { useEnvironment } from '../hooks/useEnvironment'
+import RedactedGlitch from './RedactedGlitch'
 
 type Venture = {
   id: string
@@ -133,7 +134,7 @@ export default function Ventures() {
                       v.redacted ? 'text-bone/25' : ''
                     }`}
                   >
-                    {v.name}
+                    {v.redacted ? <RedactedGlitch text={v.name} /> : v.name}
                   </p>
                   <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.24em] text-bone/40">
                     {v.domain}
@@ -142,7 +143,7 @@ export default function Ventures() {
                 <span
                   className={`shrink-0 border px-3 py-1 font-mono text-[9px] uppercase tracking-[0.24em] ${
                     v.status === 'Live'
-                      ? 'border-amber/50 text-amber'
+                      ? 'live-pulse border-amber/50 text-amber'
                       : v.status === 'Built'
                         ? 'border-bone/40 text-bone/70'
                         : 'border-bone/15 text-bone/35'
