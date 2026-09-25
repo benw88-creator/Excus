@@ -213,9 +213,16 @@ export default function ParticleField({ count }: Props) {
       uPointer: { value: new THREE.Vector2() },
       // Smaller on narrow viewports — the word is scaled down to fit the same
       // frustum, and full-size points would blur its letterforms together.
-      uSize: { value: viewport.width > 8 ? 3.4 : 2.5 },
+      // (Retuned alongside the uPixelRatio fix below — mobile's renderer
+      // pixel ratio is genuinely lower than desktop's, so this needs to be
+      // a bit higher than it looks like it "should" be to land at the same
+      // final on-screen size.)
+      uSize: { value: viewport.width > 8 ? 3.4 : 3.3 },
       uNoiseScale: { value: 0.13 },
-      uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
+      // Placeholder — kept in sync with the renderer's actual pixel ratio
+      // every frame below, since gl_PointSize is measured in the renderer's
+      // own framebuffer space, not the display's.
+      uPixelRatio: { value: 1 },
       uColorCore: { value: new THREE.Color('#171a3d') },
       uColorViolet: { value: new THREE.Color('#5b3fa6') },
       // A subtle rose-magenta complement to the blue/violet base — a third
@@ -237,6 +244,16 @@ export default function ParticleField({ count }: Props) {
     const dt = Math.min(delta, 1 / 30)
     clock.current += dt
     u.uTime.value = clock.current
+
+    // The renderer's own applied pixel ratio (capped below the display's
+    // devicePixelRatio on mobile — see the Canvas `dpr` prop in Scene.tsx),
+    // not window.devicePixelRatio directly. gl_PointSize is specified in
+    // framebuffer pixels, so sizing against the wrong ratio makes points
+    // render larger than intended on any device where the two diverge — a
+    // real iPhone (devicePixelRatio 3) capped to a 1.5x framebuffer, for
+    // instance, was rendering the word's points at roughly double the
+    // intended size, merging adjacent letters into an illegible blob.
+    u.uPixelRatio.value = state.gl.getPixelRatio()
 
     // Eased toward the real scroll position, not toward a velocity — driving
     // the late-page recede from POSITION rather than velocity means it holds

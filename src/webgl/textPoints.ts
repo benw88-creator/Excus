@@ -7,7 +7,14 @@
 const FONT_SIZE = 220
 const SAMPLE_GAP = 2
 const ALPHA_THRESHOLD = 128
-const FONT = `900 ${FONT_SIZE}px "Arial Black", system-ui, sans-serif`
+// Archivo (the site's own display webfont, loaded in index.html) rather
+// than a system-font stack. "Arial Black" doesn't exist on Apple platforms,
+// so iOS/macOS silently substituted a different bold font with different
+// metrics — the letterforms sampled here came out squashed/merged as a
+// result, without ever throwing an error. Archivo is a real downloaded font
+// file, so it renders identically regardless of platform (see FontGate,
+// which makes sure it has actually finished loading before this runs).
+const FONT = `900 ${FONT_SIZE}px Archivo, system-ui, sans-serif`
 
 export function sampleTextPoints(text: string) {
   const measuring = document.createElement('canvas').getContext('2d')!
