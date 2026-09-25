@@ -7,14 +7,16 @@
 const FONT_SIZE = 220
 const SAMPLE_GAP = 2
 const ALPHA_THRESHOLD = 128
-// Archivo (the site's own display webfont, loaded in index.html) rather
-// than a system-font stack. "Arial Black" doesn't exist on Apple platforms,
-// so iOS/macOS silently substituted a different bold font with different
-// metrics — the letterforms sampled here came out squashed/merged as a
-// result, without ever throwing an error. Archivo is a real downloaded font
-// file, so it renders identically regardless of platform (see FontGate,
-// which makes sure it has actually finished loading before this runs).
-const FONT = `900 ${FONT_SIZE}px Archivo, system-ui, sans-serif`
+// A system-font stack, not a webfont. This canvas is sampled as soon as the
+// component mounts, with no guarantee a network-loaded font (Archivo, or
+// before that "Arial Black", which doesn't exist on Apple platforms at all)
+// has actually finished downloading by then — if it hasn't, the browser
+// silently substitutes and sometimes synthesises a heavier "fake bold" from
+// whatever's already available, which can render letters thick enough to
+// merge into each other with no error anywhere to signal it. Every name
+// here is a font the OS itself ships, so it's available synchronously, with
+// no loading race, on every platform.
+const FONT = `900 ${FONT_SIZE}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`
 
 export function sampleTextPoints(text: string) {
   const measuring = document.createElement('canvas').getContext('2d')!
@@ -24,12 +26,21 @@ export function sampleTextPoints(text: string) {
   // Measured from the actual glyph outlines on every side (not a guessed
   // font-size multiplier, and not the advance width, which a bold/black
   // weight can overhang) — with generous padding, since a too-tight estimate
-  // showed up as a hard-cut flat edge on the rasterised letters.
+  // showed up as a hard-cut flat edge on the rasterised letters. Falls back
+  // to a plain font-size-relative box if a platform's TextMetrics doesn't
+  // support the actualBoundingBox* fields (all zero/NaN), rather than
+  // silently rasterising into a degenerate canvas.
   const padding = FONT_SIZE * 0.5
-  const ascent = metrics.actualBoundingBoxAscent
-  const descent = metrics.actualBoundingBoxDescent
-  const left = metrics.actualBoundingBoxLeft
-  const right = metrics.actualBoundingBoxRight
+  const metricsUsable = [
+    metrics.actualBoundingBoxAscent,
+    metrics.actualBoundingBoxDescent,
+    metrics.actualBoundingBoxLeft,
+    metrics.actualBoundingBoxRight,
+  ].every((n) => Number.isFinite(n) && n !== 0)
+  const ascent = metricsUsable ? metrics.actualBoundingBoxAscent : FONT_SIZE * 0.8
+  const descent = metricsUsable ? metrics.actualBoundingBoxDescent : FONT_SIZE * 0.2
+  const left = metricsUsable ? metrics.actualBoundingBoxLeft : 0
+  const right = metricsUsable ? metrics.actualBoundingBoxRight : metrics.width
   const width = Math.ceil(left + right + padding * 2)
   const height = Math.ceil(ascent + descent + padding * 2)
 
