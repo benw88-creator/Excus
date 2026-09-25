@@ -28,12 +28,17 @@ const TEXT_Y_OFFSET = 0.9
 /** Cap on how much of the field is ever eligible to spell the word — the
  *  rest stays pure nebula, so the word reads as particles borrowed from the
  *  cloud rather than a separate text layer duplicating it. */
-const TEXT_FRACTION = 0.42
+// Confirmed via a real device's ?debug=1 readout that at 0.42/1.05 the word's
+// particles were dense and large enough that additive blending washed every
+// gap between letters into one solid block — the surrounding (sparser,
+// smaller, glow-free) nebula rendered correctly on the same device, so
+// density/overlap here was the actual cause, not point size or pixel ratio.
+const TEXT_FRACTION = 0.28
 /** Text particles are drawn from a slightly larger size band than the
  *  nebula's own random range, just enough to read as a shape at a glance
  *  without the shader having to render them as solid or flat. */
-const TEXT_SCALE_MIN = 0.5
-const TEXT_SCALE_MAX = 1.05
+const TEXT_SCALE_MIN = 0.4
+const TEXT_SCALE_MAX = 0.85
 
 /** World units — how far the cursor's push reaches. */
 const MOUSE_RADIUS = 2.8
