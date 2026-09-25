@@ -32,8 +32,8 @@ const TEXT_FRACTION = 0.55
  *  distribution (rather than the same random range as the nebula), so the
  *  letters read clearly at a glance without the shader having to render them
  *  as solid or flat. */
-const TEXT_SCALE_MIN = 0.85
-const TEXT_SCALE_MAX = 1.7
+const TEXT_SCALE_MIN = 0.65
+const TEXT_SCALE_MAX = 1.35
 
 /** World units — how far the cursor's push reaches. */
 const MOUSE_RADIUS = 2.8

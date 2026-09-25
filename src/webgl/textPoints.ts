@@ -7,25 +7,33 @@
 const FONT_SIZE = 220
 const SAMPLE_GAP = 2
 const ALPHA_THRESHOLD = 128
+const FONT = `900 ${FONT_SIZE}px "Arial Black", system-ui, sans-serif`
 
 export function sampleTextPoints(text: string) {
+  const measuring = document.createElement('canvas').getContext('2d')!
+  measuring.font = FONT
+  const metrics = measuring.measureText(text)
+
+  // Measured from the actual glyph outlines (not a guessed font-size
+  // multiplier), with generous padding on every side — a fixed multiplier
+  // clipped descender-free caps like "EXCUS" against the canvas edge on some
+  // platforms' metrics, which showed up as a hard-cut flat edge on the
+  // rasterised letters.
+  const padding = FONT_SIZE * 0.35
+  const ascent = metrics.actualBoundingBoxAscent
+  const descent = metrics.actualBoundingBoxDescent
+  const width = Math.ceil(metrics.width + padding * 2)
+  const height = Math.ceil(ascent + descent + padding * 2)
+
   const canvas = document.createElement('canvas')
-  const ctx = canvas.getContext('2d')!
-
-  ctx.font = `900 ${FONT_SIZE}px "Arial Black", system-ui, sans-serif`
-  const measured = ctx.measureText(text).width
-
-  const width = Math.ceil(measured) + 60
-  const height = Math.ceil(FONT_SIZE * 1.3)
   canvas.width = width
   canvas.height = height
-
-  // Sizing the canvas resets the context, so font/fill have to be reapplied.
-  ctx.font = `900 ${FONT_SIZE}px "Arial Black", system-ui, sans-serif`
+  const ctx = canvas.getContext('2d')!
+  ctx.font = FONT
   ctx.fillStyle = '#fff'
-  ctx.textBaseline = 'middle'
+  ctx.textBaseline = 'alphabetic'
   ctx.textAlign = 'center'
-  ctx.fillText(text, width / 2, height / 2)
+  ctx.fillText(text, width / 2, padding + ascent)
 
   const { data } = ctx.getImageData(0, 0, width, height)
   const points: { x: number; y: number }[] = []

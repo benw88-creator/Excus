@@ -172,7 +172,7 @@ export const fragmentShader = /* glsl */ `
     // Particles currently spelling the word lean toward the brighter, whiter
     // end of the palette — a gentle lift, not a swap, so the letters still
     // read as the same gas rather than a separate glowing-text layer.
-    color = mix(color, uColorSpark, vIsText * 0.22);
+    color = mix(color, uColorSpark, vIsText * 0.12);
 
     // Larger particles read as slightly brighter/closer, smaller ones as
     // dimmer background wisps — density variation instead of a uniform field.
@@ -184,9 +184,9 @@ export const fragmentShader = /* glsl */ `
     // the cloud is thick, not from any single point being opaque.
     alpha *= mix(0.08, 0.42, vDepth) * mix(1.0, 0.4, uProgress) * sizeBrightness;
     alpha *= mix(0.7, 1.3, sparkle);
-    // A modest, capped lift for text particles — legible against the field
-    // without ever reading as solid or as a separate effect.
-    alpha *= mix(1.0, 1.35, vIsText);
+    // A slight, capped lift for text particles — just enough to read as the
+    // word against the field without turning solid or obvious.
+    alpha *= mix(1.0, 1.15, vIsText);
 
     gl_FragColor = vec4(color, alpha);
   }
