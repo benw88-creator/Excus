@@ -27,8 +27,7 @@ export default function ClosingCTA() {
         </SplitText>
 
         <p className="max-w-lg text-sm leading-relaxed text-bone/50">
-          Excus works with a small number of operators, engineers and founders each year.
-          If you are building something that should already exist, start here.
+          If you're building something that should already exist, get in touch.
         </p>
 
         <motion.a
@@ -51,8 +50,16 @@ export default function ClosingCTA() {
         </motion.a>
       </div>
 
-      <footer className="absolute inset-x-0 bottom-0 z-10 flex items-center justify-between px-6 py-8 font-mono text-[10px] uppercase tracking-[0.28em] text-bone/30 md:px-12">
-        <span>Excus — technology company</span>
+      <footer className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center gap-4 px-6 py-8 font-mono text-[10px] uppercase tracking-[0.28em] text-bone/30 sm:flex-row sm:justify-between md:px-12">
+        <span>EXCUS LTD</span>
+        <nav className="flex items-center gap-6">
+          <a href="/privacy.html" data-cursor className="transition-colors hover:text-bone/70">
+            Privacy
+          </a>
+          <a href="/terms.html" data-cursor className="transition-colors hover:text-bone/70">
+            Terms
+          </a>
+        </nav>
         <span>© {new Date().getFullYear()}</span>
       </footer>
     </section>

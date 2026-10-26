@@ -50,14 +50,20 @@ export default function Company() {
 
       <div className="mx-auto grid w-full max-w-6xl gap-10 md:grid-cols-[1fr_1.5fr] md:items-start">
         <div data-company-reveal>
-          <h2 className="text-[9vw] font-medium leading-[0.95] tracking-[-0.035em] md:text-[3.8vw]">
-            On the record.
-          </h2>
-          <p className="mt-6 max-w-sm text-sm leading-relaxed text-bone/50">
+          <p className="max-w-sm text-lg leading-relaxed text-bone/70 md:text-xl">
             Excus is an independent UK technology company building its own software
-            products rather than selling hours. Vinall, a music ranking app, is live;
-            Consumerland, a shopping platform, is built. Both are shipped and run by
-            one small team under one legal entity.
+            products.{' '}
+            <a
+              href="https://vinall.xyz"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-cursor
+              className="text-bone underline decoration-bone/30 underline-offset-4 transition-colors hover:text-amber hover:decoration-amber"
+            >
+              Vinall
+            </a>
+            , a music ranking app, is live; Consumerland, a shopping platform, is built.
+            Both are operated by EXCUS LTD.
           </p>
         </div>
 

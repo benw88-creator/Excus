@@ -8,6 +8,8 @@ type Venture = {
   name: string
   domain: string
   status: string
+  /** Live ventures with a public destination link out to it. */
+  url?: string
   /** Unnamed bets are rendered as redacted blocks rather than invented names. */
   redacted?: boolean
 }
@@ -16,7 +18,7 @@ type Venture = {
 // page until there is something to name — see RedactedGlitch, still wired
 // below for whenever one is ready to show.
 const VENTURES: Venture[] = [
-  { id: 'v1', name: 'Vinall', domain: 'Music ranking', status: 'Live' },
+  { id: 'v1', name: 'Vinall', domain: 'Music ranking', status: 'Live', url: 'https://vinall.xyz' },
   { id: 'v2', name: 'Consumerland', domain: 'Shopping without the cost', status: 'Built' },
 ]
 
@@ -140,14 +142,8 @@ export default function Ventures() {
     <div data-drift className="mx-auto w-full max-w-6xl will-change-transform">
       <div className="grid gap-10 md:grid-cols-[1fr_1.5fr] md:items-end">
         <div data-ventures-intro>
-          <h2 className="text-[9vw] font-medium leading-[0.95] tracking-[-0.035em] md:text-[3.8vw]">
-            One company.
-            <br />
-            <span className="text-amber">Many bets.</span>
-          </h2>
-          <p className="mt-6 max-w-sm text-sm leading-relaxed text-bone/50">
-            Excus builds and operates its own products rather than selling hours. Vinall
-            is the first to ship. It will not be the last.
+          <p className="max-w-sm text-lg leading-relaxed text-bone/70 md:text-xl">
+            Excus builds and operates its own products rather than selling hours.
           </p>
         </div>
 
@@ -165,13 +161,28 @@ export default function Ventures() {
               />
               <div className="flex items-baseline justify-between gap-6 pt-6">
                 <div className="min-w-0">
-                  <p
-                    className={`truncate text-3xl font-medium tracking-[-0.02em] md:text-4xl ${
-                      v.redacted ? 'text-bone/25' : ''
-                    }`}
-                  >
-                    {v.redacted ? <RedactedGlitch text={v.name} /> : v.name}
-                  </p>
+                  {v.url ? (
+                    <a
+                      href={v.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      data-cursor
+                      className="group inline-flex items-baseline gap-2 truncate text-3xl font-medium tracking-[-0.02em] transition-colors hover:text-amber md:text-4xl"
+                    >
+                      <span className="truncate">{v.name}</span>
+                      <span className="text-base text-bone/30 transition-colors group-hover:text-amber md:text-lg">
+                        ↗
+                      </span>
+                    </a>
+                  ) : (
+                    <p
+                      className={`truncate text-3xl font-medium tracking-[-0.02em] md:text-4xl ${
+                        v.redacted ? 'text-bone/25' : ''
+                      }`}
+                    >
+                      {v.redacted ? <RedactedGlitch text={v.name} /> : v.name}
+                    </p>
+                  )}
                   <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.24em] text-bone/40">
                     {v.domain}
                   </p>

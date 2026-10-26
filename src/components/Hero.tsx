@@ -73,7 +73,7 @@ export default function Hero() {
           className="flex flex-col items-center gap-6"
         >
           <p className="max-w-xl text-center text-sm leading-relaxed text-bone/55 md:text-base">
-            Where innovation meets the new age of technology.
+            EXCUS LTD builds and operates its own software products.
           </p>
           <div className="flex flex-col items-center gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-bone/35">
             <span>Scroll</span>

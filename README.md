@@ -1,9 +1,8 @@
 # Excus
 
-Single-page, scroll-driven site for **Excus**, an independent technology
-company. Vinall — a music ranking app — is one of its ventures, listed in
-section 02 rather than being the subject of the site.
-*Where innovation meets the new age of technology.*
+Single-page, scroll-driven site for **EXCUS LTD**, an independent UK
+technology company. Vinall — a music ranking app — is one of its products,
+listed in section 02 rather than being the subject of the site.
 
 ## Run it
 
@@ -33,7 +32,8 @@ makes the animated path impossible to verify without an override:
 | `components/Hero.tsx` | EXCUS assembles from scattered fragments |
 | `components/Manifesto.tsx` | 01 — one sentence at a time, scrubbed, no overlap between lines |
 | `components/Ventures.tsx` | 02 — the ledger of what the company is building |
-| `components/ClosingCTA.tsx` | 03 — CTA over the continuing shader field |
+| `components/Company.tsx` | 03 — legal entity, registered office, contact |
+| `components/ClosingCTA.tsx` | 04 — CTA over the continuing shader field, footer |
 | `components/Progress.tsx` | Hairline scroll rule, left edge |
 | `components/SplitText.tsx` | SplitType wrapper, per-char / per-word reveal |
 | `components/Cursor.tsx` | Two-part cursor, `gsap.quickTo` |
