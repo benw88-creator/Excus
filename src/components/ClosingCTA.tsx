@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import SplitText from './SplitText'
 
 /**
- * Section 3. The company-level ask.
+ * Section 4. The company-level ask.
  *
  * The hero's canvas is still mounted behind the page — the shader's uProgress
  * uniform has collapsed and dimmed the field by now, so this reads as the same
@@ -13,7 +13,7 @@ export default function ClosingCTA() {
     <section className="relative flex min-h-[100svh] w-full flex-col items-center justify-center overflow-hidden px-6">
       <div className="relative z-10 flex flex-col items-center gap-10 text-center">
         <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-amber/70">
-          03 — Contact
+          04 — Contact
         </span>
 
         <SplitText
@@ -32,7 +32,7 @@ export default function ClosingCTA() {
         </p>
 
         <motion.a
-          href="mailto:hello@excus.com"
+          href="mailto:hello@excus.co.uk"
           data-cursor
           whileHover="hover"
           initial="rest"

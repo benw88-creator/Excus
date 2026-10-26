@@ -12,11 +12,12 @@ type Venture = {
   redacted?: boolean
 }
 
+// Unannounced bets (redacted placeholders) are held back from the public
+// page until there is something to name — see RedactedGlitch, still wired
+// below for whenever one is ready to show.
 const VENTURES: Venture[] = [
   { id: 'v1', name: 'Vinall', domain: 'Music ranking', status: 'Live' },
   { id: 'v2', name: 'Consumerland', domain: 'Shopping without the cost', status: 'Built' },
-  { id: 'v3', name: '████████', domain: 'Unannounced', status: 'In build', redacted: true },
-  { id: 'v4', name: '██████', domain: 'Unannounced', status: 'Research', redacted: true },
 ]
 
 const ROW_H = 108

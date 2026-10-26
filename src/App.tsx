@@ -6,6 +6,7 @@ import Progress from './components/Progress'
 import Hero from './components/Hero'
 import Manifesto from './components/Manifesto'
 import Ventures from './components/Ventures'
+import Company from './components/Company'
 import ClosingCTA from './components/ClosingCTA'
 import Hero3D from './webgl/Hero3D'
 import DebugOverlay from './components/DebugOverlay'
@@ -55,6 +56,7 @@ export default function App() {
         <Hero />
         <Manifesto />
         <Ventures />
+        <Company />
         <ClosingCTA />
       </div>
     </SmoothScroll>
