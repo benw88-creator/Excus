@@ -50,7 +50,9 @@ export default function Hero() {
           transition={{ delay: 1.1, duration: 1 }}
           className="flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.28em] text-bone/45"
         >
-          <span>Independent technology company</span>
+          <a href="#company" data-cursor className="transition-colors hover:text-bone">
+            EXCUS LTD
+          </a>
           <span className="hidden md:inline">Est. MMXXVI</span>
         </motion.div>
 

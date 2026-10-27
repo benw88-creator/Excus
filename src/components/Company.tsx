@@ -43,7 +43,7 @@ export default function Company() {
   )
 
   return (
-    <section ref={root} className="relative w-full px-6 py-24 md:px-16">
+    <section id="company" ref={root} className="relative w-full scroll-mt-16 px-6 py-24 md:px-16">
       <span className="mb-16 block font-mono text-[10px] uppercase tracking-[0.3em] text-amber/70">
         03 — Company
       </span>
