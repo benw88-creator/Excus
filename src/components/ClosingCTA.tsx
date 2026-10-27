@@ -53,10 +53,10 @@ export default function ClosingCTA() {
       <footer className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center gap-4 px-6 py-8 font-mono text-[10px] uppercase tracking-[0.28em] text-bone/30 sm:flex-row sm:justify-between md:px-12">
         <span>EXCUS LTD</span>
         <nav className="flex items-center gap-6">
-          <a href="/privacy.html" data-cursor className="transition-colors hover:text-bone/70">
+          <a href="/privacy" data-cursor className="transition-colors hover:text-bone/70">
             Privacy
           </a>
-          <a href="/terms.html" data-cursor className="transition-colors hover:text-bone/70">
+          <a href="/terms" data-cursor className="transition-colors hover:text-bone/70">
             Terms
           </a>
         </nav>
