@@ -1,5 +1,6 @@
 import { Suspense, lazy } from 'react'
 import { useEnvironment } from '../hooks/useEnvironment'
+import ErrorBoundary from '../components/ErrorBoundary'
 
 // three.js, R3F and drei are ~1MB of the bundle. Loading them lazily keeps them
 // out of the initial payload, and off the wire entirely for anyone on reduced
@@ -31,8 +32,14 @@ export default function Hero3D() {
   if (reducedMotion) return <GradientFallback />
 
   return (
-    <Suspense fallback={<GradientFallback />}>
-      <Scene mobile={mobile} />
-    </Suspense>
+    // A failed WebGL context (common with no real GPU, e.g. a headless
+    // review sandbox) throws during Canvas's render, and with no boundary
+    // here that crash propagates all the way up and blanks the whole page —
+    // not just this backdrop.
+    <ErrorBoundary fallback={<GradientFallback />}>
+      <Suspense fallback={<GradientFallback />}>
+        <Scene mobile={mobile} />
+      </Suspense>
+    </ErrorBoundary>
   )
 }

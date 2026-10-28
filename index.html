@@ -43,7 +43,41 @@
     />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!--
+        Replaced instantly once React mounts — nobody with working JS ever
+        sees this. It exists for anything that doesn't run JavaScript at all
+        (a crawler, an automated check, a reviewer on a connection too slow
+        to finish loading the bundle): real content instead of a blank page.
+        Mirrors StaticFallback.tsx by hand; keep both in sync.
+      -->
+      <main style="max-width:640px;margin:0 auto;padding:64px 24px;font-family:var(--font-display),system-ui,sans-serif;color:rgb(240 237 232 / 0.85)">
+        <h1 style="font-size:32px;font-weight:600;letter-spacing:-0.02em;margin:0 0 16px;color:var(--color-bone)">
+          EXCUS LTD
+        </h1>
+        <p style="line-height:1.6;margin:0 0 32px;color:rgb(240 237 232 / 0.65)">
+          An independent UK technology company building its own software products.
+          <a href="https://vinall.xyz" style="color:var(--color-bone)">Vinall</a>, a music
+          ranking app, is live; Consumerland, a shopping platform, is built.
+        </p>
+        <dl style="font-size:14px;line-height:1.9">
+          <dt style="color:rgb(240 237 232 / 0.4)">Company number</dt>
+          <dd style="margin:0 0 12px">17517058</dd>
+          <dt style="color:rgb(240 237 232 / 0.4)">Registered office</dt>
+          <dd style="margin:0 0 12px">
+            71-75 Shelton Street, Covent Garden, London, United Kingdom, WC2H 9JQ
+          </dd>
+          <dt style="color:rgb(240 237 232 / 0.4)">Contact</dt>
+          <dd style="margin:0">
+            <a href="mailto:hello@excus.co.uk" style="color:var(--color-bone)">hello@excus.co.uk</a>
+          </dd>
+        </dl>
+        <p style="margin-top:40px;font-size:12px;color:rgb(240 237 232 / 0.4)">
+          <a href="/privacy" style="color:inherit">Privacy</a> &middot;
+          <a href="/terms" style="color:inherit">Terms</a>
+        </p>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
