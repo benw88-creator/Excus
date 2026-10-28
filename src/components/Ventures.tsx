@@ -145,7 +145,7 @@ export default function Ventures() {
       <div className="grid gap-10 md:grid-cols-[1fr_1.5fr] md:items-end">
         <div data-ventures-intro>
           <p className="max-w-sm text-lg leading-relaxed text-bone/70 md:text-xl">
-            Excus builds and operates its own products rather than selling hours.
+            Excus builds and operates its own products.
           </p>
         </div>
 
