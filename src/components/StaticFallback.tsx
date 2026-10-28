@@ -1,23 +1,20 @@
 /**
  * Last-resort content for the top-level ErrorBoundary in main.tsx — if
  * anything in the app throws during render, this is what's shown instead of
- * a blank page. Deliberately plain: no GSAP, no scroll choreography, nothing
- * that could itself be the thing that's broken.
- *
- * Mirrors the no-JS fallback baked into index.html's #root by hand (same
- * facts, different markup since that one can't depend on Tailwind having
- * loaded correctly either). Keep both in sync.
+ * a blank page. Mirrors the real homepage content by hand; keep both in
+ * sync.
  */
 export default function StaticFallback() {
   return (
-    <main className="mx-auto max-w-xl px-6 py-24 font-display text-bone/85">
-      <h1 className="mb-4 text-3xl font-semibold tracking-[-0.02em]">EXCUS LTD</h1>
-      <p className="mb-8 leading-relaxed text-bone/65">
-        An independent UK technology company building its own software products.{' '}
+    <main className="mx-auto max-w-xl px-6 py-24 text-bone/85">
+      <h1 className="mb-4 text-3xl font-semibold tracking-tight">EXCUS LTD</h1>
+      <p className="mb-8 leading-relaxed text-bone/70">
+        EXCUS LTD is a UK-registered technology company. We build and operate our
+        own software products, including{' '}
         <a href="https://vinall.xyz" className="text-bone underline">
           Vinall
         </a>
-        , a music ranking app, is live.
+        , a music ranking app.
       </p>
       <dl className="space-y-3 text-sm">
         <div>
@@ -37,13 +34,15 @@ export default function StaticFallback() {
           </dd>
         </div>
       </dl>
-      <p className="mt-10 text-xs text-bone/40">
+      <p className="mt-10 flex flex-wrap gap-x-6 gap-y-2 text-xs text-bone/40">
         <a href="/privacy" className="underline">
           Privacy
-        </a>{' '}
-        &middot;{' '}
+        </a>
         <a href="/terms" className="underline">
           Terms
+        </a>
+        <a href="/vinall/support" className="underline">
+          Vinall support
         </a>
       </p>
     </main>
