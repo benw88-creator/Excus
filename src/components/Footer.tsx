@@ -3,7 +3,7 @@ export default function Footer() {
     <footer className="border-t border-bone/10">
       <div className="mx-auto max-w-3xl px-6 py-10 text-sm leading-relaxed text-bone/70">
         <p className="text-bone">EXCUS LTD</p>
-        <p className="mt-1">Company number 17517058</p>
+        <p className="mt-1">Registered in England and Wales, company number 17517058</p>
         <p className="mt-1">
           71-75 Shelton Street, Covent Garden, London, United Kingdom, WC2H 9JQ
         </p>

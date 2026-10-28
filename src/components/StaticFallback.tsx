@@ -18,8 +18,8 @@ export default function StaticFallback() {
       </p>
       <dl className="space-y-3 text-sm">
         <div>
-          <dt className="text-bone/40">Company number</dt>
-          <dd>17517058</dd>
+          <dt className="text-bone/40">Registered in</dt>
+          <dd>England and Wales, company number 17517058</dd>
         </div>
         <div>
           <dt className="text-bone/40">Registered office</dt>
