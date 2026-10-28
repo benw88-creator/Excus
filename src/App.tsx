@@ -8,27 +8,14 @@ import Manifesto from './components/Manifesto'
 import Ventures from './components/Ventures'
 import Company from './components/Company'
 import ClosingCTA from './components/ClosingCTA'
-import Hero3D from './webgl/Hero3D'
 import DebugOverlay from './components/DebugOverlay'
 import { ScrollTrigger, useGSAP } from './lib/gsap'
-import { scrollProgress } from './lib/progress'
 
 export default function App() {
   const root = useRef<HTMLDivElement>(null)
 
   useGSAP(
     () => {
-      // One page-wide progress trigger feeding the shader uniform. A single
-      // trigger rather than per-section ones keeps the per-frame WebGL read cheap.
-      ScrollTrigger.create({
-        trigger: document.documentElement,
-        start: 'top top',
-        end: 'bottom bottom',
-        onUpdate: (self) => {
-          scrollProgress.value = self.progress
-        },
-      })
-
       // Fonts load after first paint and reflow every split line, which
       // invalidates the measured start/end of everything below them.
       document.fonts?.ready.then(() => ScrollTrigger.refresh())
@@ -43,14 +30,20 @@ export default function App() {
       <Progress />
       <DebugOverlay />
 
-      {/* Fixed backdrop rather than a canvas inside the hero: the shader's
-          uProgress uniform collapses and dims the field as the page advances,
-          so the closing section inherits the same atmosphere at rest instead of
-          cutting to a different background. One WebGL context for the whole
-          page also means nothing remounts mid-scroll. */}
-      <div aria-hidden className="pointer-events-none fixed inset-0 z-0">
-        <Hero3D />
-      </div>
+      {/* Fixed, plain CSS backdrop — no WebGL. Previously a Three.js particle
+          field; cut entirely as the single largest and least reliable part of
+          the site (a ~1MB chunk, a GPU context that can fail outright with no
+          real GPU, exactly the environment an automated review tool runs
+          in). This is the same gradient every reduced-motion visitor already
+          saw, now shown to everyone. */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 z-0"
+        style={{
+          background:
+            'radial-gradient(60% 50% at 50% 45%, rgba(245,200,66,0.16) 0%, rgba(245,200,66,0.04) 35%, rgba(10,9,8,0) 70%), radial-gradient(40% 40% at 70% 70%, rgba(138,133,120,0.10) 0%, rgba(10,9,8,0) 70%)',
+        }}
+      />
 
       <div ref={root} className="relative z-10">
         <Hero />

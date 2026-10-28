@@ -4,12 +4,12 @@ type Props = { fallback: ReactNode; children: ReactNode }
 type State = { hasError: boolean }
 
 /**
- * Catches a render-time throw — a WebGL context that fails to create, a lazy
- * chunk that fails to fetch — and degrades to `fallback` instead of taking
- * down everything mounted above it. Error boundaries only catch render and
- * lifecycle errors, never promise rejections or event handlers, which is why
- * this is placed around render-time risk specifically (the WebGL scene,
- * and the whole app as a last resort) rather than wired to window.onerror.
+ * Catches a render-time throw and degrades to `fallback` instead of taking
+ * down everything mounted above it. Used once, at the top of main.tsx, as a
+ * last resort against anything unexpected crashing the whole app — error
+ * boundaries only catch render and lifecycle errors, never promise
+ * rejections or event handlers, which is why this isn't wired to
+ * window.onerror instead.
  */
 export default class ErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false }

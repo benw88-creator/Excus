@@ -1,23 +1,20 @@
 import { useRef } from 'react'
 import { motion } from 'framer-motion'
 import { gsap, useGSAP } from '../lib/gsap'
-import { useEnvironment } from '../hooks/useEnvironment'
 
 const WORD = 'EXCUS'
 
 /**
- * Section 1. The word "EXCUS" is no longer DOM type sitting on the particle
- * backdrop — it's spelled out by a subset of the nebula's own particles (see
- * ParticleField), which gather into the word on load and disperse back into
- * the cloud on scroll. The heading below exists only for the reduced-motion
- * path (no WebGL canvas is mounted there at all — see Hero3D) and for
- * assistive tech/SEO the rest of the time, so the word is never actually
- * missing from the page, just invisible where the particles are drawing it
- * instead.
+ * Section 1. Plain static heading over a CSS gradient — no WebGL. There used
+ * to be a particle field spelling the word out and dispersing on scroll, cut
+ * entirely: it was the single largest and least reliable part of the site
+ * (a ~1MB Three.js chunk, a GPU context that can fail outright in a headless
+ * or sandboxed environment with no real GPU — exactly where an automated
+ * review tool runs), for a cosmetic effect nobody asked to keep. The heading
+ * is real DOM text now, always, for every visitor and every crawler.
  */
 export default function Hero() {
   const root = useRef<HTMLElement>(null)
-  const { reducedMotion } = useEnvironment()
 
   useGSAP(
     () => {
@@ -57,13 +54,7 @@ export default function Hero() {
         </motion.div>
 
         <div className="flex flex-col items-center">
-          <h1
-            className={
-              reducedMotion
-                ? 'select-none text-center font-display text-[24vw] font-semibold leading-[0.78] tracking-[-0.045em] md:text-[19vw]'
-                : 'sr-only'
-            }
-          >
+          <h1 className="select-none text-center font-display text-[24vw] font-semibold leading-[0.78] tracking-[-0.045em] md:text-[19vw]">
             {WORD}
           </h1>
         </div>

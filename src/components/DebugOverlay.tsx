@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { particleDebug } from '../webgl/debugState'
 
 /**
  * Plain-text readout of live page state, visible only with ?debug=1 in the
@@ -75,7 +74,7 @@ export default function DebugOverlay() {
     ['evt:wheel', counts.current.wheel],
   ]
 
-  const rows = [...scrollRows, ...Object.entries(particleDebug)]
+  const rows = scrollRows
 
   return (
     <div

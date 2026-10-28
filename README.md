@@ -14,8 +14,9 @@ npm run build    # typecheck + production build to dist/
 
 ### QA overrides
 
-Automated and headless browsers report `prefers-reduced-motion: reduce`, which
-makes the animated path impossible to verify without an override:
+Automated and headless browsers report `prefers-reduced-motion: reduce`,
+which makes the scrubbed/sticky path impossible to verify without an
+override:
 
 | URL | Path |
 | --- | --- |
@@ -27,29 +28,41 @@ makes the animated path impossible to verify without an override:
 
 | File | Role |
 | --- | --- |
-| `App.tsx` | Composition, fixed WebGL backdrop, page-wide progress trigger |
+| `App.tsx` | Composition, fixed CSS gradient backdrop |
 | `components/SmoothScroll.tsx` | Lenis, bridged to the GSAP ticker |
-| `components/Hero.tsx` | EXCUS assembles from scattered fragments |
+| `components/Hero.tsx` | Static "EXCUS" heading over the gradient |
 | `components/Manifesto.tsx` | 01 — one sentence at a time, scrubbed, no overlap between lines |
 | `components/Ventures.tsx` | 02 — the ledger of what the company is building |
 | `components/Company.tsx` | 03 — legal entity, registered office, contact |
-| `components/ClosingCTA.tsx` | 04 — CTA over the continuing shader field, footer |
+| `components/ClosingCTA.tsx` | 04 — CTA, footer |
 | `components/Progress.tsx` | Hairline scroll rule, left edge |
 | `components/SplitText.tsx` | SplitType wrapper, per-char / per-word reveal |
 | `components/Cursor.tsx` | Two-part cursor, `gsap.quickTo` |
 | `components/Grain.tsx` | Filmic grain, generated once and tiled |
-| `webgl/Hero3D.tsx` | Chooses canvas vs static gradient |
-| `webgl/Scene.tsx` | R3F canvas — the lazy-loaded three.js boundary |
-| `webgl/ParticleField.tsx` | 26k-point nebula: scroll position, parallax, cursor repulsion |
-| `webgl/particles.glsl.ts` | Vertex and fragment shaders |
+| `components/ErrorBoundary.tsx` | Generic render-error catcher, used once at the top of `main.tsx` |
+| `components/StaticFallback.tsx` | What that boundary shows instead of a blank page |
 | `hooks/useEnvironment.ts` | reduced motion / mobile / pointer, read synchronously |
-| `hooks/usePointer.ts` | Window-level pointer tracking for the WebGL layer — see below for why |
-| `lib/progress.ts` | Page scroll progress read by the shader each frame |
 
 There used to be a fourth section, `FeatureStrip.tsx` ("03 — Method"), a
 horizontal scroll-jack strip. It has been removed entirely — not hidden, not
 commented out — along with its render in `App.tsx`; `ClosingCTA` was
-renumbered from 04 to 03 to close the gap.
+renumbered from 04 to 03 to close the gap, then back to 04 once `Company`
+took slot 03.
+
+**There used to be a WebGL particle field here too — a ~1MB Three.js/R3F
+scene spelling "EXCUS" out of 26,000 points and dispersing them on scroll.
+Removed entirely, deliberately, not parked.** It was the single largest and
+least reliable thing on the site: a GPU context that can fail outright with
+no real GPU (exactly the kind of headless/sandboxed environment an automated
+review tool runs in), a lazy chunk that could fail to fetch, and — found
+during an Apple Developer Program organisation-verification pass — a site
+whose core content depended on a mobile-specific quality tier (fewer
+particles, smaller canvas) that was never actually verified against a real
+phone, only ever tuned against whatever debug numbers a previous real-device
+session happened to produce. None of that risk is proportionate to a
+cosmetic hero effect on a company's own verification-critical website. The
+heading is now plain DOM text, unconditionally, for every visitor and every
+crawler.
 
 ## Decisions worth knowing before you edit
 
@@ -74,37 +87,6 @@ and animates 0 to 0. Everything here is `fromTo` with both ends stated.
 initialiser.** An effect-set `ready` flag flips on first commit, which changes
 every `useGSAP` dependency array and makes GSAP revert and rebuild each context
 mid-flight.
-
-**The particle field's cursor repulsion tracks the pointer itself, not
-R3F's `state.pointer`.** R3F only updates its pointer state for events that
-actually reach the canvas DOM element, decided by ordinary browser
-hit-testing. This canvas is a full-viewport fixed backdrop sitting *behind*
-the real page content, and every section's own box — even ones with mostly
-empty background — covers the full width of the page in the document flow.
-That means the canvas loses hit-testing at literally every pixel any section
-occupies, and `state.pointer` sat frozen at its initial value; confirmed live
-by dispatching synthetic pointer events and watching it never move.
-`usePointer.ts` is a small module-level singleton with its own `window`-level
-`pointermove` listener, read by `ParticleField` every frame regardless of
-what the browser thinks should receive the event. The existing screen-space
-parallax (`uPointer`) was quietly broken the same way and is fixed by the
-same change.
-
-**Cursor repulsion is CPU-raycast, GPU-displaced.** Once per frame,
-`ParticleField` raycasts the tracked NDC pointer onto the particle cloud's
-centre (z=0) plane — cheap, a single CPU-side ray/plane intersection — and
-hands the resulting world point to the shader as `uMouseWorld`. Every
-particle's distance-based push (`smoothstep` falloff, squared for a sharper
-centre, direction includes z so particles behind the cursor get shoved back
-too) happens in the vertex shader, in parallel, for free; nothing per-particle
-runs on the CPU. `uMouseWorld` is itself smoothed frame to frame (a lerp, not
-raw), which is what keeps the dispersal reading as a field being pushed
-through rather than snapping to follow a jittery cursor — there is no
-separate per-particle velocity/spring state, the smoothing lives entirely in
-the driver. A `uMousePresence` scalar fades the whole effect in on
-`pointermove` and out on the pointer leaving the window (`document`
-`mouseleave` / `window` `blur`), so arrival and departure read as deliberate
-rather than a hard cut.
 
 **`gsap.from` is unsafe for anything reactive, and so is any implicit-overlap
 crossfade.** Two related traps surfaced in this codebase:
@@ -166,54 +148,6 @@ The sticky sections each carry a slow scrubbed drift, and a hairline progress
 rule runs down the left edge, so a section that is holding never reads as the
 page having stopped.
 
-**The particle field's directional drift is driven by scroll POSITION
-(`uProgress`), not scroll velocity.** It used to be velocity-driven — Lenis's
-own `velocity`, later replaced with a clean delta computed from
-`lenis.animatedScroll` to kill an oscillation that metric had under the
-buffered-input scheme above (a real sawtooth, confirmed by logging it
-alongside a synthetic wheel test). That removed the oscillation but not the
-underlying design problem: velocity decays to zero the instant scrolling
-stops, by definition, so the field would visibly ease back toward its resting
-position on every pause — reported as "particles move backwards and forwards
-rather than linear motion." `uProgress` is a pure function of scroll
-*position* (already computed for the end-of-page collapse below), so driving
-the drift from it instead is inherently linear and reversible: it only
-changes when the actual scroll position changes, in whichever direction,
-and holds exactly still the instant you stop, at whatever position you
-stopped at. Verified live: scrolled to a position, held for 6 seconds with
-zero drift in the sampled uniform; scrolled to the top and it returned to
-~0; scrolled back to the original position and it returned to the same
-value it held the first time (within noise). The velocity pipeline this
-replaced (`useScrollVelocity.ts`, the `uVelocity` uniform) had no other
-consumer once this changed, so it was deleted rather than left half-dead.
-
-**The nebula look is mostly the fragment shader's falloff and colour, not the
-particle count.** Three changes, in order of how much they actually matter:
-a gaussian alpha falloff (`exp(-d²·9)`) replaced a smoothstep circle — a
-smoothstep circle still reads as a dot no matter how large it gets, because it
-has a real edge; a gaussian has none, so once points are large enough to
-overlap they blend into continuous cloud instead of staying legible as
-separate discs. Point size and the size-variance range both went up
-(`uSize` 2.1→3.4, clamp 26→34, JS-side scale distribution biased toward small
-with occasional large via `random·random`) so there's enough overlap for that
-blending to actually happen. And colour is patchy rather than speckled: a
-third colour (`uColorEmber`, a warm rust) blends in via `smoothstep` over a
-*low-frequency* noise sample (`uNoiseScale`, shared by neighbouring
-particles) rather than the old per-particle random threshold, so it reads as
-soft drifting clouds of colour the way a real emission nebula varies
-gradually, not per-particle static. `noise()` outputs roughly -1..1 but isn't
-evenly spread across that range, so the noise is remapped to 0..1 before
-thresholding — thresholding the raw -1..1 output directly made "ember"
-territory too rare to read as anything but a stray fleck. A handful of
-particles keep a sharp amber `sparkle` on top (`step(0.94, vSeed)`) so the
-cloud doesn't read as a flat wash. Base alpha dropped accordingly
-(`vDepth` mix 0.18–0.85 → 0.09–0.5) — with points this large and this softly
-edged, density has to come from additive overlap building brightness where
-the cloud is thick, not from any single point being opaque, or it blows out.
-`patch` is a reserved GLSL word (tessellation-related) — do not name a local
-variable that if you're editing this shader; it fails to compile with
-"illegal use of reserved word" and no other hint.
-
 **Scroll speed is `WHEEL_SPEED` in `SmoothScroll.tsx`, not Lenis's
 `wheelMultiplier`.** That config option never runs for wheel input: returning
 `false` from `virtualScroll` makes Lenis's own `onVirtualScroll` bail out
@@ -258,21 +192,25 @@ real one, so it wins regardless of any later-declared, equal-specificity
 
 ## Accessibility and fallbacks
 
-- `prefers-reduced-motion: reduce` → no WebGL (the three.js chunk is never
-  fetched), no splitting, no sticky sections, no custom cursor. Every section
-  renders as ordinary stacked content with all copy intact.
-- Mobile / coarse pointer → no scroll-jacking, native touch momentum, particle
-  count dropped from 26k to 7k and DPR capped at 1.5.
-- The hero's `<h1>` carries `aria-label="EXCUS"` with the per-letter spans
-  hidden, so it is announced as one word.
+- `prefers-reduced-motion: reduce` → no splitting, no sticky/scrubbed
+  sections, no custom cursor. Every section renders as ordinary stacked
+  content with all copy intact, same as everyone else.
+- Mobile / coarse pointer → no scroll-jacking, native touch momentum.
+- No JavaScript at all → index.html's `#root` carries real static content
+  (company name, what it does, legal details, contact), replaced instantly
+  once React mounts. See `index.html` and `StaticFallback.tsx`.
+- Anything that throws during render → caught by the top-level
+  `ErrorBoundary` in `main.tsx`, which shows `StaticFallback` instead of a
+  blank page.
 
 ## Bundle
 
 | Chunk | gzip |
 | --- | --- |
 | Initial JS | 168 KB |
-| `Scene` (three.js, R3F, drei) | 244 KB, lazy |
 | CSS | 5 KB |
+
+There is exactly one JS chunk now — no WebGL, nothing lazy-loaded.
 
 ## Type and colour
 
