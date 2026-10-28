@@ -16,10 +16,12 @@ type Venture = {
 
 // Unannounced bets (redacted placeholders) are held back from the public
 // page until there is something to name — see RedactedGlitch, still wired
-// below for whenever one is ready to show.
+// below for whenever one is ready to show. Consumerland is held back the
+// same way for now — not redacted, just not listed — and goes back in by
+// uncommenting the line below.
 const VENTURES: Venture[] = [
   { id: 'v1', name: 'Vinall', domain: 'Music ranking', status: 'Live', url: 'https://vinall.xyz' },
-  { id: 'v2', name: 'Consumerland', domain: 'Shopping without the cost', status: 'Built' },
+  // { id: 'v2', name: 'Consumerland', domain: 'Shopping without the cost', status: 'Built' },
 ]
 
 const ROW_H = 108

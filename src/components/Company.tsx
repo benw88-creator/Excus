@@ -62,8 +62,7 @@ export default function Company() {
             >
               Vinall
             </a>
-            , a music ranking app, is live; Consumerland, a shopping platform, is built.
-            Both are operated by EXCUS LTD.
+            , a music ranking app, is live and operated by EXCUS LTD.
           </p>
         </div>
 

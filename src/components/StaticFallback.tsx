@@ -17,7 +17,7 @@ export default function StaticFallback() {
         <a href="https://vinall.xyz" className="text-bone underline">
           Vinall
         </a>
-        , a music ranking app, is live; Consumerland, a shopping platform, is built.
+        , a music ranking app, is live.
       </p>
       <dl className="space-y-3 text-sm">
         <div>
